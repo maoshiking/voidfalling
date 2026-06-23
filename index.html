@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>虚空坠落</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <!-- <link href="https://www.w3school.com.cn/lib/bs/bootstrap.css" rel="stylesheet">
+    <script src="https://www.w3school.com.cn/lib/bs/bootstrap.js"></script> -->
+    <link rel="stylesheet" href="./css/index.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="./img/logo/favicon.jpg" >
+</head>
+<body>
+    <!-- ========== 欢迎遮罩 ========== -->
+    <div id="welcome-overlay" onclick="onWelcomeClick()">
+        <div id="welcome-text">欢迎你，点击进入游戏！[温馨提示:有声音体验更佳，游戏音量较大，请适度调低!]</div>
+    </div>
+
+    <!-- ========== 主菜单 ========== -->
+    <div id="box-add">
+        <!-- 左侧：随机追逐演示 -->
+        <div id="menu-left">
+            <canvas id="deco-canvas"></canvas>
+        </div>
+        <!-- 右侧：交互按钮面板 -->
+        <div id="menu-right">
+            <div class="title-add">虚空坠落</div>
+            <button type="button" class="menu-btn menu-btn-start" id="add-two">开始坠落</button>
+            <div class="menu-info-row">
+                <span id="points-display">积分: 0</span>
+                <span id="checkin-days-display">累积登录: 0天</span>
+            </div>
+            <div class="menu-nav-list">
+                <!-- 每日签到（独立保留）-->
+                <div class="menu-nav-item" onclick="event.stopPropagation();openCheckinModal()">每日签到</div>
+                <div class="menu-nav-item" data-modal="saveslot">我的存档</div>
+
+                <!-- 百科大全：游戏规则 + 档案 -->
+                <div class="menu-nav-category" onclick="toggleCategory(this)">
+                    <span class="cat-arrow">▶</span> 百科大全
+                </div>
+                <div class="category-sub" id="cat-encyclopedia">
+                    <div class="menu-nav-item" data-modal="rules">游戏规则</div>
+                    <div class="menu-nav-item" data-modal="archive">档案</div>
+                </div>
+
+                <!-- 统计内容：个人排名 + 游戏日志 + 成就系统 -->
+                <div class="menu-nav-category" onclick="toggleCategory(this)">
+                    <span class="cat-arrow">▶</span> 统计内容<span id="stats-cat-notify">新内容!</span>
+                </div>
+                <div class="category-sub" id="cat-stats">
+                    <div class="menu-nav-item" data-modal="pai">个人排名<span id="rank-badge">新记录!!!</span></div>
+                    <div class="menu-nav-item" onclick="openLeaderboard()">在线排行榜</div>
+                    <div class="menu-nav-item" data-modal="gamelog">游戏日志</div>
+                    <div class="menu-nav-item" data-modal="achievement">成就系统<span id="ach-badge">新成就!!!</span></div>
+                </div>
+
+                <!-- 娱乐中心：音乐厅 + 皮肤商城 -->
+                <div class="menu-nav-category" onclick="toggleCategory(this)">
+                    <span class="cat-arrow">▶</span> 娱乐中心
+                </div>
+                <div class="category-sub" id="cat-entertainment">
+                    <div class="menu-nav-item" data-modal="music" onclick="event.stopPropagation();openMusicHall()">音乐厅</div>
+                    <div class="menu-nav-item" data-modal="shop" onclick="event.stopPropagation();openShopModal()">皮肤商城</div>
+                    <div class="menu-nav-item" onclick="event.stopPropagation();openGallery()">美术馆</div>
+                </div>
+
+                <!-- 设定：更新日志 + 联系站主 + 设置 -->
+                <div class="menu-nav-category" onclick="toggleCategory(this)">
+                    <span class="cat-arrow">▶</span> 设定
+                </div>
+                <div class="category-sub" id="cat-settings">
+                    <div class="menu-nav-item menu-nav-ver" onclick="event.stopPropagation();showVersionLog()">更新日志</div>
+                    <div class="menu-nav-item" data-modal="contact">联系站主</div>
+                    <div class="menu-nav-item" data-modal="settings" onclick="event.stopPropagation();openSettings()">设置</div>
+                    <div class="menu-nav-item" onclick="event.stopPropagation();openCredits()">鸣谢名单</div>
+                </div>
+
+                <button id="debug-btn" title="调试面板" onclick="openDebugPanel()" style="display:none;margin-top:8px;padding:4px 10px;background:transparent;border:1px solid #4b5563;border-radius:4px;color:#6b7280;font-size:11px;cursor:pointer;">调</button>
+            </div>
+            <div id="version-display">版本号:1.90【测试版不代表最终水平】</div>
+        </div>
+    </div>
+
+    <!-- ========== 弹窗遮罩 ========== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <div class="modal-close" id="modalClose">&times;</div>
+            <div class="modal-content" id="modalContent"></div>
+        </div>
+    </div>
+    <!-- ========== 游戏界面 ========== -->
+    <div id="game-screen">
+        <div id="game-inner">
+            <canvas id="game-canvas"></canvas>
+        </div>
+        <div id="countdown">
+            <div id="countdown-bg"></div>
+            <div id="countdown-content">
+                <div id="countdown-tip-section">
+                    <div id="countdown-tip-label">💡 小贴士</div>
+                    <div id="countdown-tip-text"></div>
+                </div>
+                <div id="countdown-preview-wrap">
+                    <canvas id="countdown-preview" width="280" height="280"></canvas>
+                </div>
+                <div id="countdown-bar-section">
+                    <div id="countdown-bar-track">
+                        <div id="countdown-bar-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 道具刷新提示：顶部居中 -->
+        <div id="item-spawn-notify" style="display:none;position:absolute;top:6px;left:50%;transform:translateX(-50%);color:#22c55e;font-size:44px;font-weight:bold;z-index:100;text-shadow:0 0 10px rgba(34,197,94,0.6);animation:itemSpawnPulse 0.3s ease-in-out infinite alternate;pointer-events:none;">道具刷新!</div>
+        <!-- 道具效果冒泡栏：道具刷新下面，从上到下堆叠 -->
+        <div id="effect-bars" style="display:none;position:absolute;top:56px;left:50%;transform:translateX(-50%);z-index:100;pointer-events:none;flex-direction:column;align-items:center;gap:4px;"></div>
+        <div id="game-hud">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div>
+                    <div id="hp-display"></div>
+                    <button id="pause-btn">空格以暂停</button>
+                </div>
+                <div>
+                    <div id="monster-count">普通怪: 0</div>
+                    <div id="special-count">特殊怪: 0</div>
+                    <div id="monster-speed">普通怪移速: 0 u/s</div>
+                    <div id="bomb-range-bonus" style="display:none;color:#22c55e;font-size:12px;">炸弹范围加成: 0%</div>
+                </div>
+            </div>
+            <div id="hud-notify"></div>
+            <!-- 道具状态栏：怪物数量与计时器中间 -->
+            <div id="item-status" style="display:none;flex-direction:column;align-items:center;gap:2px;min-width:120px;">
+                <span id="item-status-name" style="color:#fbbf24;font-size:12px;font-weight:bold;"></span>
+                <div id="item-status-bar-wrap" style="width:100px;height:6px;background:#374151;border-radius:3px;overflow:hidden;">
+                    <div id="item-status-bar-fill" style="height:100%;background:#3b82f6;border-radius:3px;transition:width 0.1s linear;"></div>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span id="record-indicator">破纪录啦!</span>
+                    <div id="timer-display">00:00</div>
+                </div>
+                <div id="game-points-display">积分 +0</div>
+                <div id="rank-points-display">点数 +0</div>
+                <div id="diff-indicator">游戏难度:普通</div>
+                <div id="fps-display" style="color:#4b5563;font-size:11px;">0 FPS</div>
+            </div>
+        </div>
+        <div id="game-over-screen">
+            <div class="game-over-text">真厉害，你存活了！</div>
+            <div class="game-over-time" id="final-time">00:00</div>
+            <div class="best-time-text" id="best-time">最佳: 00:00</div>
+            <div class="new-record-text" id="new-record">新纪录!</div>
+            <button class="btn btn-primary" id="restart-btn">再战一把</button>
+            <button class="btn btn-primary" id="home-btn">返回主页</button>
+        </div>
+    </div>
+    
+    <script src="./js/supabase.js"></script>
+    <script src="./js/index.js"></script>
+    <script src="./js/fantasy.js"></script>
+    <script src="./js/items.js"></script>
+
+    <!-- PC 提示 Toast -->
+    <div id="pc-toast">检测到你是电脑用户，已自动匹配最佳尺寸</div>
+
+    <!-- 缩放警告 Toast -->
+    <div id="zoom-warn">禁止缩放！画面将自动调整</div>
+
+    <!-- 浮动调试面板 -->
+    <div id="debug-backdrop" onclick="closeDebugPanel()"></div>
+    <div id="debug-float">
+        <div class="debug-float-header">
+            <span>调试面板</span>
+            <button id="debug-float-close" onclick="closeDebugPanel()">&times;</button>
+        </div>
+        <div class="debug-panel" id="debugPanel"></div>
+    </div>
+</body>
+</html>
+
